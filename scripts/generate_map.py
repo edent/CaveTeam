@@ -4,19 +4,19 @@ import random
 import base64
 
 #	Settings
-players      =   4
+players      =   6	#	Between 1 - 6
 threshold    =   3 * players
 rows         =   7
 columns      =  18
 font_size    =  12
-paper_width  = 420
+paper_width  = 420	# A3 Dimensions
 paper_height = 297
 tile_size    =  12 / math.sin(math.radians(60))
 
+#	Fonts
 font_style_score = "font-family:score"
 font_style_title = "font-family:title"
 font_style_slime = "font-family:slime"
-
 font_title = "fonts/Sancreek/Sancreek_Regular_Subset.woff2"
 font_slime = "fonts/Creepster/Creepster_Regular_Subset.woff2"
 font_score = "fonts/Runic/Runic_Sans_Plain_Subset.woff2"
@@ -51,31 +51,30 @@ def draw_hex(size, centre, colour, drawing):
 
 def add_score(score, centre, drawing, font):	
 	score_text = svgwrite.text.Text(str(score), insert=centre, font_size=font_size, fill='black')
-	score_text['text-anchor']='middle'
-	score_text['dy']=font_size/3
+	score_text['text-anchor'] = 'middle'
+	score_text['dy'] = font_size/3
 	score_text['style'] = font
 	drawing.add(score_text)
 
 def add_victory(centre, drawing):
-	# hex = svgwrite.shapes.Polygon(points, fill=svgwrite.rgb(0, 255, 0, '%'), fill_opacity=100)
 	exit_text = svgwrite.text.Text('EXIT', font_size=font_size/2, insert=centre, fill='black')
-	exit_text['text-anchor']='middle'
+	exit_text['text-anchor'] = 'middle'
+	exit_text['dy'] = font_size/3/2
 	exit_text['style'] = font_style_title
-	exit_text['dy']=font_size/3/2
 	drawing.add(exit_text)
 
 def add_start(centre, drawing):
 	start_text = svgwrite.text.Text('START', font_size=font_size/2, insert=centre, fill='black')
-	start_text['text-anchor']='middle'
-	start_text['dy']=font_size/3/2
+	start_text['text-anchor'] = 'middle'
+	start_text['dy'] = font_size/3/2
 	start_text['style'] = font_style_title
 	drawing.add(start_text)
 
 def add_slime(centre, drawing):
 	slime_text = svgwrite.text.Text('SLIME', font_size=font_size/2, insert=centre, fill='black')
 	slime_text['text-anchor']='middle'
-	slime_text['style'] = font_style_slime
 	slime_text['dy']=font_size/3/2
+	slime_text['style'] = font_style_slime
 	drawing.add(slime_text)
 
 def get_locations_distance(pos1, pos2):
@@ -97,8 +96,8 @@ def choose_victory_position(starting_position):
 	# Don't allow the victory point in the fist half of the board
 	# or (if the board is _really_ small in either of the first two columns)
 	min_column = max(columns/2, starting_position[0] + 2)
-	column=random.randint(min_column, columns-1)
-	row=random.randint(0, rows-1)
+	column = random.randint(min_column, columns-1)
+	row = random.randint(0, rows-1)
 	victory_pos = (column, row)
 	return victory_pos
 
@@ -137,7 +136,7 @@ def draw_slime_counter(drawing):
 	slime_title_location = get_hex_centre(rows +0.65, -1, tile_size)
 	slime_title_location = (paper_width/2, slime_title_location[1])
 	slime_title_text = svgwrite.text.Text("SLIME COUNTER", insert=slime_title_location, font_size=font_size*.9, fill='green')
-	slime_title_text['text-anchor']='middle'
+	slime_title_text['text-anchor'] = 'middle'
 	slime_title_text['style'] = font_style_slime
 	drawing.add(slime_title_text)
 
@@ -164,12 +163,23 @@ def add_style(drawing):
 			"""
 	drawing.defs.add(drawing.style(css))
 
+def get_score():
+	#	The rules for single and double player games are slightly different
+	if players ==   1:
+		return random.randint(1,  6)
+	elif players == 2: 
+		return random.randint(1, 12)
+	else:
+		return random.randint(1, threshold)
 
 def create_board(rows, columns, size):
+	#	Filename
+	filename = str(players) + " player CaveTeam " + str(random.randint(100, 999)) + ".svg"
+	
 	#	Board size should be A3
-	board = svgwrite.Drawing('board.svg', 
-						size=(str(paper_width)+"mm", str(paper_height)+"mm"), 
-						viewBox=('0 0 ' + str(paper_width) + ' ' + str(paper_height)) )
+	board = svgwrite.Drawing(filename, 
+						size    = (str(paper_width)+"mm", str(paper_height)+"mm"), 
+						viewBox = ('0 0 ' + str(paper_width) + ' ' + str(paper_height)) )
 	#	Add fonts
 	add_style(board)
 	
@@ -182,7 +192,7 @@ def create_board(rows, columns, size):
 						insert=title_location, 
 						font_size=font_size*2, 
 						fill='black')
-	title_text['text-anchor']='middle'
+	title_text['text-anchor'] = 'middle'
 	title_text['style'] = font_style_title
 
 	board.add(title_text)
@@ -200,7 +210,7 @@ def create_board(rows, columns, size):
 	board.add(board.rect(insert=(tiles_left_margin - tile_size/2 , get_vertical_offset(size) + tile_size), 
 	                     size  =(tiles_width + tile_size         , '85%'),
 	                     fill  ='#e1e1e1',
-	                     rx = "5%"))
+	                     rx    ="5%"))
 
 
 	#	Draw the tiles
@@ -228,15 +238,12 @@ def create_board(rows, columns, size):
 				add_score(0, position, board, font_style_score)
 			#	Regular tile
 			else:
-				score = random.randint(1, threshold)
+				score = get_score()
 				draw_hex(size, position, "#FFFFFF", board)
 				add_score(score, position, board, font_style_score)
 
 	#	Draw the Slime Counter
 	draw_slime_counter(board)
 	board.save()	
-
-
-
 
 create_board(rows, columns, tile_size)
