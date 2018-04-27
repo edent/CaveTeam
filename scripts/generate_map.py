@@ -1,6 +1,25 @@
 import svgwrite
 import math
 import random
+import base64
+
+#	Settings
+players      =   4
+threshold    =   3 * players
+rows         =   7
+columns      =  18
+font_size    =  12
+paper_width  = 420
+paper_height = 297
+tile_size    =  12 / math.sin(math.radians(60))
+
+font_style_score = "font-family:score"
+font_style_title = "font-family:title"
+font_style_slime = "font-family:slime"
+
+font_title = "fonts/Sancreek/Sancreek_Regular_Subset.woff2"
+font_slime = "fonts/Creepster/Creepster_Regular_Subset.woff2"
+font_score = "fonts/Runic/Runic_Sans_Plain_Subset.woff2"
 
 def get_vertical_offset(size):
 	opposite = size * math.sin(math.radians(60))
@@ -117,23 +136,30 @@ def draw_slime_counter(drawing):
 	
 	slime_title_location = get_hex_centre(rows +0.65, -1, tile_size)
 	slime_title_location = (paper_width/2, slime_title_location[1])
-	slime_title_text = svgwrite.text.Text("Slime Counter", insert=slime_title_location, font_size=font_size*.9, fill='green')
+	slime_title_text = svgwrite.text.Text("SLIME COUNTER", insert=slime_title_location, font_size=font_size*.9, fill='green')
 	slime_title_text['text-anchor']='middle'
 	slime_title_text['style'] = font_style_slime
 	drawing.add(slime_title_text)
 
 def add_style(drawing):
+	score_font    = open(font_score, "rb").read()
+	score_font_64 = "data:font/woff2;base64," + base64.b64encode(score_font).decode("ascii")
+	slime_font    = open(font_slime, "rb").read()
+	slime_font_64 = "data:font/woff2;base64," + base64.b64encode(slime_font).decode("ascii")
+	title_font    = open(font_title, "rb").read()
+	title_font_64 = "data:font/woff2;base64," + base64.b64encode(title_font).decode("ascii")
+	
 	css = """	@font-face {
 					font-family: slime;
-					src: url('fonts/Creepster/Creepster-Regular.ttf');
+					src: url('"""+ slime_font_64 +"""');
 				}
 				@font-face {
 					font-family: title;
-					src: url('fonts/Sancreek/Sancreek-Regular.ttf');
+					src: url('"""+ title_font_64 +"""');
 				}
 				@font-face {
 					font-family: score;
-					src: url('fonts/Runic/Runic_Sans_Plain.otf');
+					src: url('"""+ score_font_64 +"""');
 				}
 			"""
 	drawing.defs.add(drawing.style(css))
@@ -210,22 +236,7 @@ def create_board(rows, columns, size):
 	draw_slime_counter(board)
 	board.save()	
 
-#	Settings
-players      =   4
-threshold    =   3 * players
-rows         =   7
-columns      =  18
-font_size    =  12
-paper_width  = 420
-paper_height = 297
-tile_size    =  12 / math.sin(math.radians(60))
 
-font_style_score = "font-family:score"
-font_style_title = "font-family:title"
-font_style_slime = "font-family:slime"
-
-# font_title = "fonts/Sancreek/Sancreek-Regular.ttf"
-# font_slime = "fonts/Creepster/Creepster-Regular.ttf"
 
 
 create_board(rows, columns, tile_size)
